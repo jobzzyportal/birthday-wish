@@ -242,6 +242,24 @@
   #fx { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; }
   .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
+  /* ---------- Sound toggle button ---------- */
+  #soundBtn {
+    position: fixed;
+    top: calc(env(safe-area-inset-top, 0px) + 14px);
+    right: 14px;
+    z-index: 60;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(0, 0, 0, .4);
+    color: #fff;
+    font-size: 18px;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; animation-delay: 0s !important; transition-duration: .001ms !important; }
     .bub { animation: none !important; opacity: 1; }
@@ -541,14 +559,18 @@
 
 <canvas id="fx" aria-hidden="true"></canvas>
 
+<button id="soundBtn" aria-label="Toggle music">🔇</button>
+
 <script>
 (() => {
   'use strict';
-    // Background music
+  // Background music
   const bgMusic = document.getElementById('bgMusic');
 
   function startMusic() {
-    bgMusic.play().catch(() => {});
+    bgMusic.play().then(() => {
+      soundBtn.textContent = '🔊';
+    }).catch(() => {});
     document.removeEventListener('click', startMusic);
     document.removeEventListener('touchstart', startMusic);
     document.removeEventListener('keydown', startMusic);
@@ -557,6 +579,21 @@
   document.addEventListener('click', startMusic);
   document.addEventListener('touchstart', startMusic);
   document.addEventListener('keydown', startMusic);
+
+  // Fallback / manual toggle — most reliable path on strict mobile browsers
+  const soundBtn = document.getElementById('soundBtn');
+  soundBtn.addEventListener('click', (e) => {
+    e.stopPropagation(); // don't also trigger slide navigation
+    if (bgMusic.paused) {
+      bgMusic.play()
+        .then(() => { soundBtn.textContent = '🔊'; })
+        .catch(() => { soundBtn.textContent = '🔇'; });
+    } else {
+      bgMusic.pause();
+      soundBtn.textContent = '🔇';
+    }
+  });
+
   /* ===== Edit these ===== */
   const CONFIG = {
     name: 'Tanishk',
